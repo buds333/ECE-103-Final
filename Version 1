@@ -1,0 +1,42 @@
+// Define the pins for the button and LED
+const int buttonPin = 4; // Connect the button to digital pin 2
+const int ledPin = 2;   // Connect an LED to digital pin 13 (or use the built-in LED)
+const int relayPin = 8;
+// Variable to store the button's state
+int buttonState = 0;
+
+void setup() {
+  // Initialize the LED pin as an output
+  pinMode(ledPin, OUTPUT);
+  pinMode(relayPin, OUTPUT);
+  // Initialize the button pin as an input
+  // Use INPUT_PULLUP for a simpler wiring where the button connects to ground
+  // and the internal pull-up resistor keeps the pin HIGH when unpressed.
+  pinMode(buttonPin, INPUT_PULLUP); 
+  
+  // Start serial communication for debugging (optional)
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Read the state of the button
+  // digitalRead returns LOW when the button is pressed (with INPUT_PULLUP)
+  // and HIGH when it's unpressed.
+  buttonState = digitalRead(buttonPin);
+
+  // Check if the button is pressed
+  if (buttonState == LOW) {
+    // If pressed, turn the LED on
+    digitalWrite(ledPin, HIGH);
+    digitalWrite(relayPin, HIGH);
+    Serial.println("Button Pressed - LED ON"); // Optional: for debugging
+  } else {
+    // If not pressed, turn the LED off
+    digitalWrite(ledPin, LOW);
+    digitalWrite(relayPin, LOW);
+    Serial.println("Button Not Pressed - LED OFF"); // Optional: for debugging
+  }
+  
+  // A small delay can help with button debouncing (optional, but often useful)
+  delay(50); 
+}
