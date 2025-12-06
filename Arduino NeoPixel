@@ -1,0 +1,45 @@
+#include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
+#endif
+
+// Configuration
+#define pin 8             // Pin connected to the NeoPixels
+#define num_pixels 7      // Number of NeoPixels in the ring
+#define delay_value 500   // Delay between pixels (milliseconds)
+#define brightness 50     // Brightness level (0-255, lower = dimmer)
+
+// Initialize NeoPixel object
+Adafruit_NeoPixel pixels(num_pixels, pin, NEO_GRB + NEO_KHZ800);
+
+// Counter variable
+int t = 0;
+
+void setup() {
+  // Trinket-specific code (safe to leave for other boards)
+  #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
+    clock_prescale_set(clock_div_1);
+  #endif
+  
+  // Initialize NeoPixel strip
+  pixels.begin();
+  pixels.setBrightness(brightness); // Set brightness to avoid bright light in face
+  pixels.show(); // Initialize all pixels to 'off'
+}
+
+void loop() {
+  pixels.clear(); // Set all pixel colors to 'off'
+  
+  if (t < 2) {
+    // Light up each pixel one by one with a dim green color
+    for(int i = 0; i < num_pixels; i++) {
+      pixels.setPixelColor(i, pixels.Color(0, 150, 0));
+      pixels.show();   // Send the updated pixel colors to the hardware
+      delay(delay_value); // Pause before next pixel
+    }
+    t = t + 1;
+  } else {
+    pixels.clear();
+    pixels.show();
+  }
+}
