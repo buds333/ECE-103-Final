@@ -1,19 +1,24 @@
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
-  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
+#include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
 
 // Configuration
 #define pin 8             // Pin connected to the NeoPixels
 #define num_pixels 7      // Number of NeoPixels in the ring
-#define delay_value 500   // Delay between pixels (milliseconds)
-#define brightness 50     // Brightness level (0-255, lower = dimmer)
+#define brightness 30     // Brightness level (0-255, lower = dimmer)
 
 // Initialize NeoPixel object
 Adafruit_NeoPixel pixels(num_pixels, pin, NEO_GRB + NEO_KHZ800);
 
-// Counter variable
-int t = 0;
+// Brain state variables
+bool neutral_state = false;
+bool dopamine_state = false;
+bool withdrawal_state = false;
+
+// Counter and state tracking
+int loop_counter = 0;
+int state_counter = 0;
 
 void setup() {
   // Trinket-specific code (safe to leave for other boards)
@@ -23,23 +28,84 @@ void setup() {
   
   // Initialize NeoPixel strip
   pixels.begin();
-  pixels.setBrightness(brightness); // Set brightness to avoid bright light in face
+  pixels.setBrightness(brightness);
   pixels.show(); // Initialize all pixels to 'off'
 }
 
 void loop() {
   pixels.clear(); // Set all pixel colors to 'off'
   
-  if (t < 2) {
-    // Light up each pixel one by one with a dim green color
-    for(int i = 0; i < num_pixels; i++) {
-      pixels.setPixelColor(i, pixels.Color(0, 150, 0));
-      pixels.show();   // Send the updated pixel colors to the hardware
-      delay(delay_value); // Pause before next pixel
-    }
-    t = t + 1;
+  // Determine which state to activate based on state_counter
+  if (state_counter == 0) {
+    neutral_state = true;
+    dopamine_state = false;
+    withdrawal_state = false;
+  } else if (state_counter == 1) {
+    neutral_state = false;
+    dopamine_state = true;
+    withdrawal_state = false;
+  } else if (state_counter == 2) {
+    neutral_state = false;
+    dopamine_state = false;
+    withdrawal_state = true;
   } else {
-    pixels.clear();
+    // Turn off after all states have run
+    neutral_state = false;
+    dopamine_state = false;
+    withdrawal_state = false;
     pixels.show();
+    return;
+  }
+  
+  // Execute the active brain state
+  if (neutral_state) {
+    runNeutralState();
+  } else if (dopamine_state) {
+    runDopamineState();
+  } else if (withdrawal_state) {
+    runWithdrawalState();
+  }
+  
+  // Increment loop counter
+  loop_counter++;
+  
+  // After 3 loops of current state, move to next state
+  if (loop_counter >= 4) {
+    loop_counter = 0;
+    state_counter++;
+  }
+}
+
+// Neutral state: Normal, consistent pattern
+void runNeutralState() {
+  // Smooth, steady pulse pattern
+  for(int i = 0; i < num_pixels; i++) {
+    pixels.setPixelColor(i, pixels.Color(0, 100, 150)); // Calm blue-green
+    pixels.show();
+    delay(500); // Steady, consistent timing
+  }
+}
+
+// Dopamine state: Fast, energetic pattern
+void runDopamineState() {
+  // Rapid, bright flashing pattern
+  for(int i = 0; i < num_pixels; i++) {
+    pixels.setPixelColor(i, pixels.Color(255, 100, 0)); // Bright orange
+    pixels.show();
+    delay(80); // Much faster timing
+  }
+}
+
+// Withdrawal state: Erratic, inconsistent pattern
+void runWithdrawalState() {
+  // Random, stuttering pattern
+  for(int i = 0; i < num_pixels; i++) {
+    // Random colors and timing to show inconsistency
+    int r = random(0, 250);
+    int g = random(0, 250);
+    int b = random(0, 200);
+    pixels.setPixelColor(i, pixels.Color(r, g, b)); // Dim, erratic colors
+    pixels.show();
+    delay(random(150, 600)); // Inconsistent timing
   }
 }
